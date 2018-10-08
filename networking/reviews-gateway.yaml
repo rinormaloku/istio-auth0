@@ -4,7 +4,7 @@ metadata:
   name: reviews-gateway
 spec:
   selector:
-    istio: ingressgateway # use istio default controller
+    istio: ingressgateway
   servers:
   - port:
       number: 80
