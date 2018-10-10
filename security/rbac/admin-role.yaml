@@ -1,0 +1,22 @@
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRole
+metadata:
+  name: admin-role
+  namespace: default
+spec:
+  rules:
+  - services: ["*"]
+    paths: ["*"]
+    methods: ["*"]
+---
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRoleBinding
+metadata:
+  name: service-admin-binding
+spec:
+  subjects:
+  - properties:
+      request.auth.claims[https://bookinfo.io/group]: "Admin"
+  roleRef:
+    kind: ServiceRole
+    name: "admin-role" 

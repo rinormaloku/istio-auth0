@@ -1,0 +1,15 @@
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: bookinfo
+spec:
+  targets:
+  - name: reviews
+  - name: ratings
+  - name: details
+  origins:
+  - jwt:
+      issuer: "https://bookinfo.eu.auth0.com/"
+      jwksUri: "https://bookinfo.eu.auth0.com/.well-known/jwks.json"
+  principalBinding: USE_ORIGIN
+  

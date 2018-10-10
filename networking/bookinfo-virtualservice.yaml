@@ -6,7 +6,7 @@ spec:
   hosts:
   - "*"
   gateways:
-  - bookinfo-gateway
+  - bookinfo-gateway                # 1
   http:
   - match:
     - uri:
@@ -19,6 +19,6 @@ spec:
         prefix: /api/v1/products
     route:
     - destination:
-        host: productpage
+        host: productpage           # 2
         port:
           number: 9080
