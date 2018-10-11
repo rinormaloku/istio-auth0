@@ -174,6 +174,8 @@ def getForwardHeaders(request):
     # We handle other (non x-b3-***) headers manually
     if 'user' in session:
         headers['end-user'] = session['user']
+    if 'access_token' in session:
+        headers['Authorization'] = 'Bearer ' + session['access_token']
 
     incoming_headers = ['x-request-id']
 
@@ -206,16 +208,23 @@ def health():
 
 @app.route('/login', methods=['POST'])
 def login():
-    user = request.values.get('username')
-    response = app.make_response(redirect(request.referrer))
-    session['user'] = user
-    return response
+    access_token = request.values.get('accessToken')
+    session['access_token'] = access_token
+
+    userinfo_req = requests.get(
+        'https://bookinfo.eu.auth0.com/userinfo',
+        headers={ 'Authorization': 'Bearer ' + access_token})
+
+    data = userinfo_req.json()
+    session['user'] = data['nickname']
+    return 'token added to the session'
 
 
 @app.route('/logout', methods=['GET'])
 def logout():
     response = app.make_response(redirect(request.referrer))
     session.pop('user', None)
+    session.pop('access_token', None)
     return response
 
 

@@ -19,10 +19,49 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
+<!-- Auth0 Library -->
+<script src="https://cdn.auth0.com/js/auth0/9.5.1/auth0.min.js"></script>
 <script type="text/javascript">
-$('#login-modal').on('shown.bs.modal', function () {
-     $('#username').focus();
-});
+    var auth0 = new auth0.WebAuth({
+        clientID: 'jqUu5x3KfCF9xdkLyfQM6Sn43n3j6eqK',
+        domain: 'bookinfo.eu.auth0.com',
+        redirectUri: 'http://13.93.30.120/productpage',
+        audience: 'https://bookinfo.io/',
+        responseType: 'token',
+        scope: 'openid profile'
+    });
+
+    function handleAuthentication() {
+        auth0.parseHash(function (err, authResult) {
+            if (authResult && authResult.accessToken) {
+                window.location.hash = '';
+                setSession(authResult);
+            } else if (err) {
+                console.log(err);
+                alert('Error: ' + err.error);
+            }
+        });
+    }
+
+    function setSession(authResult) {
+        let accessToken = authResult.accessToken;
+        $.ajax({
+            url: '/login',
+            method: 'post',
+            data: {
+                accessToken: accessToken
+            },
+            dataType: 'json',
+        }).complete(function () {
+            location.reload();
+        });
+    }
+
+    $('#sign-in').click(function () {
+        auth0.authorize();
+    });
+
+    handleAuthentication();
 </script>
 {% endblock %}
 {% block title %}Simple Bookstore App{% endblock %}
@@ -39,7 +78,7 @@ $('#login-modal').on('shown.bs.modal', function () {
             <span style="padding-left: 5px;">{{ user }}  ( <a href="logout">sign out</a> )</span>
         </p>
         {% else %}
-        <button type="button" class="btn btn-default navbar-btn navbar-right" data-toggle="modal" href="#login-modal">Sign in</button>
+        <button type="button" class="btn btn-default navbar-btn navbar-right" id="sign-in">Sign in</button>
         {% endif %}
     </div>
 </nav>
