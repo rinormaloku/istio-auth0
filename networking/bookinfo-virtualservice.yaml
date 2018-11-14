@@ -12,6 +12,8 @@ spec:
     - uri:
         exact: /productpage
     - uri:
+        exact: /callback
+    - uri:
         exact: /login
     - uri:
         exact: /logout

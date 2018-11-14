@@ -9,7 +9,7 @@ spec:
   - name: details
   origins:
   - jwt:
-      issuer: "https://bookinfo.eu.auth0.com/"
-      jwksUri: "https://bookinfo.eu.auth0.com/.well-known/jwks.json"
+      issuer: "https://authistio.eu.auth0.com/"
+      jwksUri: "https://authistio.eu.auth0.com/.well-known/jwks.json"
   principalBinding: USE_ORIGIN
   

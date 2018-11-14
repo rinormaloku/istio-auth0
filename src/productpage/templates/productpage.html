@@ -20,9 +20,6 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
-$('#login-modal').on('shown.bs.modal', function () {
-     $('#username').focus();
-});
 </script>
 {% endblock %}
 {% block title %}Simple Bookstore App{% endblock %}
@@ -39,7 +36,9 @@ $('#login-modal').on('shown.bs.modal', function () {
             <span style="padding-left: 5px;">{{ user }}  ( <a href="logout">sign out</a> )</span>
         </p>
         {% else %}
-        <button type="button" class="btn btn-default navbar-btn navbar-right" data-toggle="modal" href="#login-modal">Sign in</button>
+        <a href="login">
+          <button type="button" class="btn btn-default navbar-btn navbar-right">Sign in</button>
+        </a>
         {% endif %}
     </div>
 </nav>

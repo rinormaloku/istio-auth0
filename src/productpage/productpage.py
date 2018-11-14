@@ -23,6 +23,9 @@ from jaeger_client.codecs import B3Codec
 from opentracing.ext import tags
 from opentracing.propagation import Format
 from opentracing_instrumentation.request_context import get_current_span, span_in_context
+from authlib.flask.client import OAuth
+from six.moves.urllib.parse import urlencode
+
 import simplejson as json
 import requests
 import sys
@@ -86,6 +89,28 @@ service_dict = {
     "details" : details,
     "reviews" : reviews,
 }
+
+# AUTH0_CALLBACK_URL = "http://{INGRESS_EXTERNAL_IP}/callback"
+AUTH0_CALLBACK_URL = "http://137.117.160.102/callback"
+AUTH0_CLIENT_ID = "nnqzFoi8AwMKYHtC3KSizulxe60SIUs2"
+AUTH0_CLIENT_SECRET = "wW72mtCyqT133l7sGzUuSgOeR61R6DbGd4cXOc1jkrlz1miX0o6GzTL9e3u3LY-3"
+AUTH0_DOMAIN = "authistio.eu.auth0.com"
+AUTH0_BASE_URL = 'https://' + AUTH0_DOMAIN
+AUTH0_AUDIENCE = "https://bookinfo-0.io"
+
+oauth = OAuth(app)
+
+auth0 = oauth.register(
+    'auth0',
+    client_id=AUTH0_CLIENT_ID,
+    client_secret=AUTH0_CLIENT_SECRET,
+    api_base_url=AUTH0_BASE_URL,
+    access_token_url=AUTH0_BASE_URL + '/oauth/token',
+    authorize_url=AUTH0_BASE_URL + '/authorize',
+    client_kwargs={
+        'scope': 'openid profile',
+    },
+)
 
 # A note on distributed tracing:
 #
@@ -174,6 +199,8 @@ def getForwardHeaders(request):
     # We handle other (non x-b3-***) headers manually
     if 'user' in session:
         headers['end-user'] = session['user']
+    if 'access_token' in session:
+        headers['Authorization'] = 'Bearer ' + session['access_token']
 
     incoming_headers = ['x-request-id']
 
@@ -204,19 +231,16 @@ def health():
     return 'Product page is healthy'
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login')
 def login():
-    user = request.values.get('username')
-    response = app.make_response(redirect(request.referrer))
-    session['user'] = user
-    return response
+    return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL, audience=AUTH0_AUDIENCE)
 
 
-@app.route('/logout', methods=['GET'])
+@app.route('/logout')
 def logout():
-    response = app.make_response(redirect(request.referrer))
-    session.pop('user', None)
-    return response
+    session.clear()
+    params = {'returnTo': url_for('front', _external=True), 'client_id': AUTH0_CLIENT_ID}
+    return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
 
 @app.route('/productpage')
@@ -236,6 +260,17 @@ def front():
         details=details,
         reviews=reviews,
         user=user)
+
+
+@app.route('/callback')
+def callback_handling():
+    response = auth0.authorize_access_token()
+    resp = auth0.get('userinfo')
+    userinfo = resp.json()
+
+    session['access_token'] = response['access_token']
+    session['user'] = userinfo['nickname']
+    return redirect('/productpage')
 
 
 # The API:
