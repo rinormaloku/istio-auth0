@@ -45,7 +45,7 @@ except ImportError:
 http_client.HTTPConnection.debuglevel = 1
 
 app = Flask(__name__)
-logging.basicConfig(filename='microservice.log',filemode='w',level=logging.DEBUG)
+logging.basicConfig(filename='microservice.log', filemode='w', level=logging.DEBUG)
 requests_log = logging.getLogger("requests.packages.urllib3")
 requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
@@ -56,38 +56,39 @@ app.logger.setLevel(logging.DEBUG)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 from flask_bootstrap import Bootstrap
+
 Bootstrap(app)
 
 servicesDomain = "" if (os.environ.get("SERVICES_DOMAIN") == None) else "." + os.environ.get("SERVICES_DOMAIN")
 
 details = {
-    "name" : "http://details{0}:9080".format(servicesDomain),
-    "endpoint" : "details",
-    "children" : []
+    "name": "http://details{0}:9080".format(servicesDomain),
+    "endpoint": "details",
+    "children": []
 }
 
 ratings = {
-    "name" : "http://ratings{0}:9080".format(servicesDomain),
-    "endpoint" : "ratings",
-    "children" : []
+    "name": "http://ratings{0}:9080".format(servicesDomain),
+    "endpoint": "ratings",
+    "children": []
 }
 
 reviews = {
-    "name" : "http://reviews{0}:9080".format(servicesDomain),
-    "endpoint" : "reviews",
-    "children" : [ratings]
+    "name": "http://reviews{0}:9080".format(servicesDomain),
+    "endpoint": "reviews",
+    "children": [ratings]
 }
 
 productpage = {
-    "name" : "http://details{0}:9080".format(servicesDomain),
-    "endpoint" : "details",
-    "children" : [details, reviews]
+    "name": "http://details{0}:9080".format(servicesDomain),
+    "endpoint": "details",
+    "children": [details, reviews]
 }
 
 service_dict = {
-    "productpage" : productpage,
-    "details" : details,
-    "reviews" : reviews,
+    "productpage": productpage,
+    "details": details,
+    "reviews": reviews,
 }
 
 # AUTH0_CALLBACK_URL = "http://{INGRESS_EXTERNAL_IP}/callback"
@@ -99,7 +100,6 @@ AUTH0_BASE_URL = 'https://' + AUTH0_DOMAIN
 AUTH0_AUDIENCE = "https://bookinfo-0.io"
 
 oauth = OAuth(app)
-
 auth0 = oauth.register(
     'auth0',
     client_id=AUTH0_CLIENT_ID,
@@ -152,6 +152,7 @@ def trace():
     '''
     Function decorator that creates opentracing span from incoming b3 headers
     '''
+
     def decorator(f):
         def wrapper(*args, **kwargs):
             request = stack.top.request
@@ -178,8 +179,10 @@ def trace():
             with span_in_context(span):
                 r = f(*args, **kwargs)
                 return r
+
         wrapper.__name__ = f.__name__
         return wrapper
+
     return decorator
 
 
@@ -208,7 +211,7 @@ def getForwardHeaders(request):
         val = request.headers.get(ihdr)
         if val is not None:
             headers[ihdr] = val
-            #print "incoming: "+ihdr+":"+val
+            # print "incoming: "+ihdr+":"+val
 
     return headers
 
@@ -233,20 +236,22 @@ def health():
 
 @app.route('/login')
 def login():
-    return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL, audience=AUTH0_AUDIENCE)
+    return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL,
+                                    audience=AUTH0_AUDIENCE)
 
 
 @app.route('/logout')
 def logout():
     session.clear()
-    params = {'returnTo': url_for('front', _external=True), 'client_id': AUTH0_CLIENT_ID}
+    params = {'returnTo': url_for('front', _external=True),
+              'client_id': AUTH0_CLIENT_ID}
     return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
 
 @app.route('/productpage')
 @trace()
 def front():
-    product_id = 0 # TODO: replace default value
+    product_id = 0  # TODO: replace default value
     headers = getForwardHeaders(request)
     user = session.get('user', '')
     product = getProduct(product_id)
@@ -263,12 +268,12 @@ def front():
 
 
 @app.route('/callback')
-def callback_handling():
+def callback():
     response = auth0.authorize_access_token()
-    resp = auth0.get('userinfo')
-    userinfo = resp.json()
-
     session['access_token'] = response['access_token']
+
+    userinfoResponse = auth0.get('userinfo')
+    userinfo = userinfoResponse.json()
     session['user'] = userinfo['nickname']
     return redirect('/productpage')
 
@@ -301,7 +306,6 @@ def ratingsRoute(product_id):
     headers = getForwardHeaders(request)
     status, ratings = getProductRatings(product_id, headers)
     return json.dumps(ratings), status, {'Content-Type': 'application/json'}
-
 
 
 # Data providers:
@@ -363,9 +367,10 @@ def getProductRatings(product_id, headers):
         status = res.status_code if res is not None and res.status_code else 500
         return status, {'error': 'Sorry, product ratings are currently unavailable for this book.'}
 
+
 class Writer(object):
     def __init__(self, filename):
-        self.file = open(filename,'w')
+        self.file = open(filename, 'w')
 
     def write(self, data):
         self.file.write(data)
@@ -373,14 +378,16 @@ class Writer(object):
     def flush(self):
         self.file.flush()
 
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print "usage: %s port" % (sys.argv[0])
+        print
+        "usage: %s port" % (sys.argv[0])
         sys.exit(-1)
 
     p = int(sys.argv[1])
     sys.stderr = Writer('stderr.log')
     sys.stdout = Writer('stdout.log')
-    print "start at port %s" % (p)
+    print
+    "start at port %s" % (p)
     app.run(host='0.0.0.0', port=p, debug=True, threaded=True)
-

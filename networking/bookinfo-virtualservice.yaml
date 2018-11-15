@@ -6,21 +6,21 @@ spec:
   hosts:
   - "*"
   gateways:
-  - bookinfo-gateway                # 1
+  - bookinfo-gateway
   http:
   - match:
     - uri:
         exact: /productpage
     - uri:
-        exact: /callback
-    - uri:
         exact: /login
     - uri:
         exact: /logout
     - uri:
+        exact: /callback
+    - uri:
         prefix: /api/v1/products
     route:
     - destination:
-        host: productpage           # 2
+        host: productpage
         port:
           number: 9080
