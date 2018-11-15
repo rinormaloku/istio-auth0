@@ -4,7 +4,7 @@ metadata:
   name: auth0-ext
 spec:
   hosts:
-  - bookinfo.eu.auth0.com
+  - {YOUR_DOMAIN}
   ports:
   - number: 443
     name: https
@@ -18,18 +18,18 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: bookinfo.eu.auth0.com
+  name: {YOUR_DOMAIN}
 spec:
   hosts:
-  - bookinfo.eu.auth0.com
+  - {YOUR_DOMAIN}
   tls:
   - match:
     - port: 443
       sni_hosts:
-      - bookinfo.eu.auth0.com
+      - {YOUR_DOMAIN}
     route:
     - destination:
-        host: bookinfo.eu.auth0.com
+        host: {YOUR_DOMAIN}
         port:
           number: 443
       weight: 100
