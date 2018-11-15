@@ -4,29 +4,32 @@ metadata:
   name: auth0-ext
 spec:
   hosts:
-  - bookinfo.eu.auth0.com
+  - authistio.eu.auth0.com
   ports:
   - number: 443
     name: https
     protocol: HTTPS
+  - number: 80
+    name: http
+    protocol: HTTP
   resolution: DNS
   location: MESH_EXTERNAL
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: bookinfo.eu.auth0.com
+  name: authistio.eu.auth0.com
 spec:
   hosts:
-  - bookinfo.eu.auth0.com
+  - authistio.eu.auth0.com
   tls:
   - match:
     - port: 443
       sni_hosts:
-      - bookinfo.eu.auth0.com
+      - authistio.eu.auth0.com
     route:
     - destination:
-        host: bookinfo.eu.auth0.com
+        host: authistio.eu.auth0.com
         port:
           number: 443
       weight: 100

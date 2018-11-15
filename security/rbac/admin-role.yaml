@@ -16,7 +16,7 @@ metadata:
 spec:
   subjects:
   - properties:
-      request.auth.claims[https://bookinfo.io/group]: "Admin"
+      request.auth.claims[https://bookinfo-0.io/group]: "Admin"
   roleRef:
     kind: ServiceRole
     name: "admin-role" 
