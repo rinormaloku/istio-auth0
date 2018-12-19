@@ -4,7 +4,7 @@ metadata:
   name: auth0-ext
 spec:
   hosts:
-  - {YOUR_DOMAIN}
+  - blog-samples.auth0.com
   ports:
   - number: 443
     name: https
@@ -18,18 +18,18 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: {YOUR_DOMAIN}
+  name: blog-samples.auth0.com
 spec:
   hosts:
-  - {YOUR_DOMAIN}
+  - blog-samples.auth0.com
   tls:
   - match:
     - port: 443
       sni_hosts:
-      - {YOUR_DOMAIN}
+      - blog-samples.auth0.com
     route:
     - destination:
-        host: {YOUR_DOMAIN}
+        host: blog-samples.auth0.com
         port:
           number: 443
       weight: 100

@@ -30,6 +30,17 @@ from json2html import *
 import logging
 import requests
 import os
+from authlib.flask.client import OAuth
+from six.moves.urllib.parse import urlencode
+
+
+AUTH0_CALLBACK_URL = "http://159.203.158.4/callback"
+AUTH0_CLIENT_ID = "bHmBYfsWZi5l3cSbgvf1mas8Z8bwgD42"
+AUTH0_CLIENT_SECRET = "mOlZMa512wIpkMxdAxKkhdsf8VYdxzqnMOAkHM67EEwYc2U-gQ4iLyPvMI5sk-HU"
+AUTH0_DOMAIN = "blog-samples.auth0.com"
+AUTH0_BASE_URL = 'https://' + AUTH0_DOMAIN
+AUTH0_AUDIENCE = "https://bookinfo.io"
+
 
 # These two lines enable debugging at httplib level (requests->urllib3->http.client)
 # You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
@@ -48,6 +59,21 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
+
+
+oauth = OAuth(app)
+auth0 = oauth.register(
+    'auth0',
+    client_id=AUTH0_CLIENT_ID,
+    client_secret=AUTH0_CLIENT_SECRET,
+    api_base_url=AUTH0_BASE_URL,
+    access_token_url=AUTH0_BASE_URL + '/oauth/token',
+    authorize_url=AUTH0_BASE_URL + '/authorize',
+    client_kwargs={
+        'scope': 'openid profile',
+    },
+)
+
 
 # Set the secret key to some random bytes. Keep this really secret!
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -175,6 +201,9 @@ def getForwardHeaders(request):
     if 'user' in session:
         headers['end-user'] = session['user']
 
+    if 'access_token' in session:
+        headers['Authorization'] = 'Bearer ' + session['access_token']
+
     incoming_headers = ['x-request-id']
 
     for ihdr in incoming_headers:
@@ -204,19 +233,28 @@ def health():
     return 'Product page is healthy'
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login')
 def login():
-    user = request.values.get('username')
-    response = app.make_response(redirect(request.referrer))
-    session['user'] = user
-    return response
+    return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL, 
+                                    audience=AUTH0_AUDIENCE)
+
+@app.route('/callback')
+def callback():
+    response = auth0.authorize_access_token()          # 1
+    session['access_token'] = response['access_token'] # 2
+    
+    userinfoResponse = auth0.get('userinfo')           # 3
+    userinfo = userinfoResponse.json()
+    session['user'] = userinfo['nickname']             # 4
+    return redirect('/productpage')
 
 
-@app.route('/logout', methods=['GET'])
+@app.route('/logout')
 def logout():
-    response = app.make_response(redirect(request.referrer))
-    session.pop('user', None)
-    return response
+    session.clear()
+    params = {'returnTo': url_for('front', _external=True),
+              'client_id': AUTH0_CLIENT_ID}
+    return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
 
 @app.route('/productpage')
