@@ -204,21 +204,6 @@ def health():
     return 'Product page is healthy'
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    user = request.values.get('username')
-    response = app.make_response(redirect(request.referrer))
-    session['user'] = user
-    return response
-
-
-@app.route('/logout', methods=['GET'])
-def logout():
-    response = app.make_response(redirect(request.referrer))
-    session.pop('user', None)
-    return response
-
-
 @app.route('/productpage')
 @trace()
 def front():
