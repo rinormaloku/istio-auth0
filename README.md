@@ -1,7 +1,9 @@
-# Securing Kubernetes Clusters with Istio and Auth0
-
-Learn how to secure a Kubernetes cluster (and the applications that run on it) with Istio and Auth0. In the following article, you will start by creating a brand-new cluster, then you will deploy an unsecured sample application and, after testing the deployment, you will learn how to secure the microservice based application with Istio and Auth0.
+NOTE: The new version of "Authenticating and Authorizing end-users with Istio and Auth0" is found [here](https://auth0.com/blog/securing-kubernetes-clusters-with-istio-and-auth0/) and the source code is located in this [repo](https://github.com/auth0-blog/istio-auth0-integration/)
 
 Keep reading at:
 
 https://auth0.com/blog/securing-kubernetes-clusters-with-istio-and-auth0/
+
+Repository with latest files at:
+
+https://github.com/auth0-blog/istio-auth0-integration/
